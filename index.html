@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+<head>
+  <title>Barcode Generator</title>
+  <meta charset="utf-8" />
+  <meta name="description" content="JavaScript barcode generator and library. Create any barcode in your browser." />
+  <link rel="icon" href="bwip-js/favicon.png" type="image/png">
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <script type="text/javascript" src="bwip-js/dist/bwip-js.js"></script>
+  <script type="text/javascript" src="bwip-js/lib/symdesc.js"></script>
+  <script type="text/javascript" src="bwip-js/lib/canvas-toblob.js"></script>
+  <script type="text/javascript" src="bwip-js/lib/filesaver.js"></script>
+  <script type="text/javascript" src="bwip-js/lib/inconsolata.js"></script>
+  <script type="text/javascript" src="script.js"></script>
+</head>
+<body>
+  <div id="header">
+      <div id="bwip-js">Barcode Generator</div>
+  </div>
+  <div id="params">
+    <table border="0" cellpadding="0" cellspacing="0">
+      <tr>
+        <td style="vertical-align:top">
+          <table border="0" cellpadding="0" cellspacing="0">
+            <tr>
+              <th>Barcode Type:</th>
+              <td><select id="symbol"></select></td>
+            </tr>
+            <tr>
+              <th>Inhalt:</th>
+              <td>
+                <input id="symtext" type="text" spellcheck="false">
+                <!-- Beispielanzeige -->
+                <div id="example">Beispiel: </div>
+              </td>
+            </tr>
+            <tr>
+              <th>Titel (optional):</th>
+              <td><input id="symaltx" type="text" spellcheck="false"></td>
+            </tr>
+            <tr>
+              <th>Größe Inhalt:</th>
+              <td><input type="range" min="1" max="10" step="1" id="scaleInhalt" value="3">
+                <output id="wertInhalt">3</output></td>
+            </tr>
+            <tr>
+              <th>Größe Titel:</th>
+              <td><input type="range" min="1" max="10" step="1" id="scaleTitel" value="3">
+                <output id="wertTitel">3</output></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr><td><br></td></tr>
+      <tr>
+        <td>
+          <button style="margin-top:1ex" id="render">Barcode anzeigen</button>
+        </td>
+      </tr>
+      <tr>
+        <!-- Beide Buttons in eine Zelle packen -->
+        <td>
+          <div id="saveas" style="display:inline-block; visibility: hidden;">
+            <button type="button" onclick="saveCanvas('image/png','.png')">Save</button>
+          </div>
+          <div id="printas" style="display:inline-block; margin-left:10px; visibility: hidden;">
+            <button type="button" onclick="printBarcode()">Print</button>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </div>
+  
+  <!-- Der Barcode-Container wird hier mit zusätzlichem Abstand weiter unten positioniert -->
+  <div id="content" style="margin-top: 30px;">
+    <canvas id="canvas" width="1" height="1" style="display:none"></canvas>
+    <div id="output" style="white-space:pre"></div>
+  </div>
+
+</body>
+</html>

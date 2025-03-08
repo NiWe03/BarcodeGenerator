@@ -1,0 +1,233 @@
+<!doctype html>
+<html>
+<head>
+  <title>Barcode Generator</title>
+  <meta charset="utf-8" />
+  <meta name="keywords" content="bar code, barcode generator, online barcode generator, free barcode generator, javascript, javascript library, nodejs, QR Code, EAN, EAN 13, Code 128, UPC, ISBN, ITF 14, Code 39, GS1, GS1 128, PDF417, HIBC, DataMatrix, Data Matrix, DataBar, OCR, OCR B, OCR font, Aztec Code, PostNet, USPS, Pharmacode" />
+  <meta name="description" content="JavaScript barcode generator and library. Create any barcode in your browser." />
+  <link rel="stylesheet" type="text/css" href="lib/demo.css">
+  <script type="text/javascript" src="dist/bwip-js.js"></script>
+  <script type="text/javascript" src="lib/symdesc.js"></script>
+  <script type="text/javascript" src="lib/canvas-toblob.js"></script>
+  <script type="text/javascript" src="lib/filesaver.js"></script>
+  <script type="text/javascript" src="lib/inconsolata.js"></script>
+  <script type="text/javascript">
+    window.addEventListener('load', function() {
+        var lastSymbol, lastBarText, lastAltText, lastScale;
+        try {
+            lastSymbol  = localStorage.getItem('bwipjsLastSymbol');
+            lastBarText = localStorage.getItem('bwipjsLastBarText');
+            lastAltText = localStorage.getItem('bwipjsLastAltText');
+            lastScale   = localStorage.getItem('bwipjsLastScale');
+        } catch (e) { }
+
+        // Hier festlegen, welche Barcode-Typen angezeigt werden sollen.
+        var allowedTypes = ['code128', 'ean13', 'qrcode'];
+
+        // Setze die Auswahlliste der Barcode-Typen
+        var sel = document.getElementById('symbol');
+        var opts = [];
+        for (var id in symdesc) {
+            // Falls allowedTypes definiert ist, werden nur diese Typen hinzugefügt.
+            if (allowedTypes && allowedTypes.length && allowedTypes.indexOf(symdesc[id].sym) === -1) {
+                continue;
+            }
+            opts.push(symdesc[id]);
+        }
+        opts.sort(function (a, b) { return a.desc < b.desc ? -1 : 1; });
+        for (var i = 0, l = opts.length; i < l; i++) {
+            var elt = document.createElement('option');
+            elt.textContent = opts[i].desc;
+            elt.value = opts[i].sym;
+            sel.appendChild(elt);
+        }
+
+        if (lastSymbol) {
+            sel.value = lastSymbol;
+        } else {
+            sel.selectedIndex = 0;
+        }
+        var evt = document.createEvent("HTMLEvents");
+        evt.initEvent("change", false, true);
+        sel.dispatchEvent(evt);
+
+        if (lastBarText) {
+            document.getElementById('symtext').value = lastBarText;
+            document.getElementById('symaltx').value = lastAltText;
+        }
+        if (lastScale) {
+            document.getElementById('scale').value = lastScale;
+        }
+
+        document.getElementById('render').addEventListener('click', render);
+        document.getElementById('saveas').style.visibility = 'hidden';
+
+        // Erlaube die Enter-Taste zum Rendern
+        document.getElementById('params').addEventListener('keypress', function(ev) {
+            if (ev.which == 13) {
+                render();
+                ev.stopPropagation();
+                ev.preventDefault();
+                return false;
+            }
+        });
+
+        document.getElementById('versions').textContent =
+                    'bwip-js ' + bwipjs.BWIPJS_VERSION + ' / BWIPP ' + bwipjs.BWIPP_VERSION;
+
+        // Lade die Inconsolata-Schriftart
+        bwipjs.loadFont("Inconsolata", 95, 105, Inconsolata);
+    });
+
+    function render() {
+        var elt  = symdesc[document.getElementById('symbol').value];
+        var text = document.getElementById('symtext').value.trim();
+        var alttext = document.getElementById('symaltx').value.trim();
+        var scale = +document.getElementById('scale').value || 5;
+
+        try {
+            localStorage.setItem('bwipjsLastSymbol', elt.sym);
+            localStorage.setItem('bwipjsLastBarText', text);
+            localStorage.setItem('bwipjsLastAltText', alttext);
+            localStorage.setItem('bwipjsLastScale', scale);
+        } catch (e) { }
+
+        // Bereinige Ausgaben
+        document.getElementById('output').textContent = '';
+        document.getElementById('stats').textContent = '';
+        document.getElementById('saveas').style.visibility = 'hidden';
+
+        var canvas = document.getElementById('canvas');
+        canvas.height = 1;
+        canvas.width  = 1;
+        canvas.style.display = 'none';
+
+        // Barcode-Optionen (immer Canvas, Rotation "N" für normal)
+        let opts = {
+            text: text,
+            bcid: elt.sym,
+            scale: scale,
+            rotate: 'N'
+        };
+        if (alttext) {
+            opts.alttext = alttext;
+        }
+
+        // Zeichne den Barcode auf das Canvas
+        try {
+            let ts0 = new Date();
+            bwipjs.toCanvas(canvas, opts);
+            showCVS(ts0, new Date());
+        } catch (e) {
+            var msg = (''+e).trim();
+            if (msg.indexOf("bwipp.") >= 0) {
+                document.getElementById('output').textContent = msg;
+            } else if (e.stack) {
+                document.getElementById('output').textContent =
+                    (e.stack.indexOf(msg) === -1 ? msg + '\n' : '') + e.stack;
+            } else {
+                document.getElementById('output').textContent = msg;
+            }
+            return;
+        }
+    }
+
+    function showCVS(ts0, ts1) {
+        var canvas = document.getElementById('canvas');
+        canvas.style.display = '';
+        setURL();
+        var elt = symdesc[document.getElementById('symbol').value];
+        document.getElementById('stats').textContent = elt.sym + ' rendered in ' + (ts1 - ts0) + ' msecs.';
+        document.getElementById('saveas').style.visibility = 'visible';
+        saveCanvas.basename = elt.sym + '-' + document.getElementById('symtext').value.replace(/[^a-zA-Z0-9._]+/g, '-');
+        if (window.devicePixelRatio) {
+            canvas.style.zoom = 1 / window.devicePixelRatio;
+        } else {
+            canvas.style.zoom = 1;
+        }
+    }
+
+    function saveCanvas(type, ext) {
+        var canvas = document.getElementById('canvas');
+        canvas.toBlob(function(blob) {
+            saveAs(blob, saveCanvas.basename + ext);
+        }, type, 1);
+    }
+
+    function setURL() {
+        var elt  = symdesc[document.getElementById('symbol').value];
+        var text = document.getElementById('symtext').value.trim();
+        var alttext = document.getElementById('symaltx').value.trim();
+        var scale = +document.getElementById('scale').value || 5;
+        var url = 'http://bwipjs-api.metafloor.com/?bcid=' + elt.sym +
+                  '&text=' + encodeURIComponent(text) +
+                  (alttext ? '&alttext=' + encodeURIComponent(alttext) : '') +
+                  '&rotate=N' +
+                  '&scale=' + scale;
+        document.getElementById('apiurl').href = url;
+    }
+
+    // Öffnet ein neues Fenster mit dem Barcode-Bild und ruft den Druckerdialog auf
+    function printBarcode() {
+        var canvas = document.getElementById('canvas');
+        var dataUrl = canvas.toDataURL('image/png');
+        var printWindow = window.open('', '_blank');
+        printWindow.document.write('<html><head><title>Print Barcode</title></head><body style="margin:0; padding:0;">');
+        printWindow.document.write('<img src="' + dataUrl + '" onload="window.print(); window.close();">');
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+    }
+  </script>
+</head>
+<body>
+  <div id="header">
+      <div id="bwip-js">Barcode Generator</div>
+      <div id="versions"></div>
+  </div>
+  <div id="params">
+    <table border="0" cellpadding="0" cellspacing="0">
+      <tr>
+        <td style="vertical-align:top">
+          <table border="0" cellpadding="0" cellspacing="0">
+            <tr>
+              <th>Barcode Type:</th>
+              <td><select id="symbol"></select></td>
+            </tr>
+            <tr>
+              <th>Content:</th>
+              <td><input id="symtext" type="text" spellcheck="false"></td>
+            </tr>
+            <tr>
+              <th>Titel (optional):</th>
+              <td><input id="symaltx" type="text" spellcheck="false"></td>
+            </tr>
+            <tr>
+              <th>Scale:</th>
+              <td><input type="number" min="1" max="9" step="1" id="scale" value="5"></td>
+            </tr>
+            <tr>
+              <td colspan="2">
+                <div id="stats"></div>
+                <div id="saveas">
+                  <a class="saveas" href="javascript:saveCanvas('image/png','.png')">Save As PNG</a>
+                  &nbsp;&nbsp;
+                  <a class="saveas" href="javascript:printBarcode()">Print</a>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr><td><br></td></tr>
+      <tr>
+        <td><button style="margin-top:1ex" id="render">Show Barcode</button></td>
+      </tr>
+    </table>
+  </div>
+  <!-- Der Barcode-Container wird hier mit zusätzlichem Abstand weiter unten positioniert -->
+  <div id="content" style="margin-top: 30px;">
+    <canvas id="canvas" width="1" height="1" style="display:none"></canvas>
+    <div id="output" style="white-space:pre"></div>
+  </div>
+</body>
+</html>

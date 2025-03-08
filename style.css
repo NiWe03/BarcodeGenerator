@@ -1,0 +1,145 @@
+/* Basis-Stile */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  background-color: #ffffff;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* Links */
+a {
+  text-decoration: none;
+  color: #FFD000;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: #e6c800;
+}
+
+/* Header */
+#header {
+  background-color: #303030;
+  padding: 20px;
+  border-bottom: 2px solid #FFD000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#header #bwip-js {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #FFD000;
+}
+
+#header #versions {
+  font-size: 0.9em;
+  color: #888;
+}
+
+/* Parameterbereich */
+#params {
+  margin: 20px auto;
+  padding: 20px;
+  max-width: 800px;
+  background-color: #fff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#params table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#params th,
+#params td {
+  padding: 10px;
+  text-align: left;
+}
+
+#params th {
+  width: 150px;
+  color: #555;
+}
+
+/* Formularelemente */
+input[type="text"],
+input[type="number"],
+select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+/* Button-Stile */
+button {
+  background-color: #FFD000;
+  border: none;
+  color: #000000;
+  padding: 10px 20px;
+  font-size: 1em;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #e6c800;
+}
+
+/* Save-As Links */
+#saveas a {
+  margin-right: 10px;
+  font-size: 0.9em;
+}
+
+#saveas a:hover {
+  text-decoration: underline;
+}
+
+/* Content-Bereich */
+#content {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Ausgabe-Formatierung */
+#output {
+  font-family: monospace;
+  white-space: pre-wrap;
+  background-color: #f9f9f9;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+/* Scale Regler */
+#scaleInhalt, #scaleTitel {
+  width: 50%;
+  height: 5px;
+  background-color: #FFD000;
+  border-radius: 10px;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+#scaleInhalt::-webkit-slider-thumb, #scaleTitel::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  background-color: #303030;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  cursor: pointer;
+}

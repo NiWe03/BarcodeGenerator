@@ -3,6 +3,7 @@
 <head>
   <title>Barcode Generator</title>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="JavaScript barcode generator and library. Create any barcode in your browser." />
   <link rel="icon" href="bwip-js/favicon.png" type="image/png">
   <link rel="stylesheet" type="text/css" href="style.css">
@@ -18,20 +19,20 @@
       <div id="bwip-js">Barcode Generator</div>
   </div>
   <div id="params">
-    <table border="0" cellpadding="0" cellspacing="0">
+    <table>
       <tr>
-        <td style="vertical-align:top">
-          <table border="0" cellpadding="0" cellspacing="0">
+        <td>
+          <table>
             <tr>
               <th>Barcode Type:</th>
               <td><select id="symbol"></select></td>
             </tr>
             <tr>
-              <th>Inhalt:</th>
+              <th>Inhalt: </th>
               <td>
-                <input id="symtext" type="text" spellcheck="false">
-                <!-- Beispielanzeige -->
-                <div id="example">Beispiel: </div>
+                <textarea id="symtext" spellcheck="false"></textarea>
+                <div id="example">Beispiel:</div>
+                <div>ENTER='\n' TAB='\t'</div>
               </td>
             </tr>
             <tr>
@@ -51,19 +52,12 @@
           </table>
         </td>
       </tr>
-      <tr><td><br></td></tr>
       <tr>
         <td>
-          <button style="margin-top:1ex" id="render">Barcode anzeigen</button>
-        </td>
-      </tr>
-      <tr>
-        <!-- Beide Buttons in eine Zelle packen -->
-        <td>
-          <div id="saveas" style="display:inline-block; visibility: hidden;">
+          <div id="saveas" style="display:inline-block;">
             <button type="button" onclick="saveCanvas('image/png','.png')">Save</button>
           </div>
-          <div id="printas" style="display:inline-block; margin-left:10px; visibility: hidden;">
+          <div id="printas" style="display:inline-block;">
             <button type="button" onclick="printBarcode()">Print</button>
           </div>
         </td>
@@ -71,11 +65,9 @@
     </table>
   </div>
   
-  <!-- Der Barcode-Container wird hier mit zusätzlichem Abstand weiter unten positioniert -->
-  <div id="content" style="margin-top: 30px;">
+  <div id="content">
     <canvas id="canvas" width="1" height="1" style="display:none"></canvas>
-    <div id="output" style="white-space:pre"></div>
+    <div id="output"></div>
   </div>
-
 </body>
 </html>

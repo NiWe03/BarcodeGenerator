@@ -2,153 +2,146 @@
 var textSizeExponent = 0.4;
 
 window.addEventListener('load', function() {
-  // Definierte Barcode-Typen, die in der Auswahlliste angezeigt werden sollen
-  var allowedTypes = ['code128', 'ean13', 'qrcode', 'upca', 'code39', 'pdf417', 'datamatrix', 'ean8', 'code93', 'upce'];
+    var allowedTypes = ['code128', 'ean13', 'qrcode', 'upca', 'code39', 'pdf417', 'datamatrix', 'ean8', 'code93', 'upce'];
 
-  // Auswahlliste der Barcode-Typen initialisieren
-  var sel = document.getElementById('symbol');
-  var opts = [];
-  for (var id in symdesc) {
-      if (allowedTypes && allowedTypes.length && allowedTypes.indexOf(symdesc[id].sym) === -1) {
-          continue;
-      }
-      opts.push(symdesc[id]);
-  }
-  opts.sort(function(a, b) { return a.desc < b.desc ? -1 : 1; });
-  for (var i = 0, l = opts.length; i < l; i++) {
-      var elt = document.createElement('option');
-      elt.textContent = opts[i].desc;
-      elt.value = opts[i].sym;
-      sel.appendChild(elt);
-  }
-
-  // Listener, der bei einer Änderung der Auswahl ausgeführt wird
-  sel.addEventListener('change', function(ev) {
-      var eltDesc = symdesc[sel.value];
-      document.getElementById('example').textContent = "Beispiel: " + (eltDesc && eltDesc.text ? eltDesc.text : '');
-      document.getElementById('symaltx').value = '';
-      document.getElementById('output').textContent = '';
-      document.getElementById('canvas').style.display = 'none';
-      document.getElementById('saveas').style.visibility = 'hidden';
-      document.getElementById('printas').style.visibility = 'hidden';
-  });
-
-  // Standardmäßig qrcode auswählen und einen Change-Event auslösen
-  sel.value = "qrcode";
-  const evt = new Event("change", { bubbles: false, cancelable: true });
-  sel.dispatchEvent(evt);
-
-  // Klick-Event zum Rendern des Barcodes
-  document.getElementById('render').addEventListener('click', render);
-
-  // Erlaube, den Barcode auch durch Drücken der Enter-Taste zu rendern
-  document.getElementById('params').addEventListener('keypress', function(ev) {
-    if (ev.key === "Enter") {
-        render();
-        ev.stopPropagation();
-        ev.preventDefault();
+    var sel = document.getElementById('symbol');
+    var opts = [];
+    for (var id in symdesc) {
+        if (allowedTypes.indexOf(symdesc[id].sym) === -1) {
+            continue;
+        }
+        opts.push(symdesc[id]);
     }
+    opts.sort(function(a, b) { return a.desc < b.desc ? -1 : 1; });
+    for (var i = 0, l = opts.length; i < l; i++) {
+        var elt = document.createElement('option');
+        elt.textContent = opts[i].desc;
+        elt.value = opts[i].sym;
+        sel.appendChild(elt);
+    }
+
+    sel.addEventListener('change', function() {
+        var eltDesc = symdesc[sel.value];
+        document.getElementById('example').textContent = "Beispiel: " + (eltDesc && eltDesc.text ? eltDesc.text : '');
+        document.getElementById('symaltx').value = '';
+        document.getElementById('output').textContent = '';
+        document.getElementById('canvas').style.display = 'none';
+    });
+
+    sel.value = "datamatrix";
+    sel.dispatchEvent(new Event("change"));
+
+    // Live-Update des Barcodes während der Eingabe
+    var symtext = document.getElementById('symtext');
+    symtext.addEventListener('input', function() {
+        render();
+    });
+
+    // Live-Update des Barcodes während der Titel Eingabe
+    var titleInput = document.getElementById('symaltx');
+    titleInput.addEventListener('input', function() {
+        render(); 
+    });
+
+    updateScale();
+    // Barcode direkt beim Laden generieren (mit leerem Text)
+    render();
 });
 
+// Escape-Sequenzen umwandeln
+function processInputText(text) {
+    return text
+        .replace(/\\n/g, '\n')  // Benutzer gibt "\n" ein → echtes Enter
+        .replace(/\\t/g, '\t'); // Benutzer gibt "\t" ein → echtes Tab
+}
 
-  // Lade die Schriftart Inconsolata für den Barcode
-  bwipjs.loadFont("Inconsolata", 95, 105, Inconsolata);
-
-  // Slider für "Größe Inhalt" initialisieren
-  var scaleInhaltSlider = document.getElementById('scaleInhalt');
-  var scaleInhaltOutput = document.getElementById('wertInhalt');
-  scaleInhaltOutput.textContent = scaleInhaltSlider.value;
-  scaleInhaltSlider.addEventListener('input', function() {
-    scaleInhaltOutput.textContent = scaleInhaltSlider.value;
-  });
-
-  // Slider für "Größe Titel" initialisieren
-  var scaleTitelSlider = document.getElementById('scaleTitel');
-  var scaleTitelOutput = document.getElementById('wertTitel');
-  scaleTitelOutput.textContent = scaleTitelSlider.value;
-  scaleTitelSlider.addEventListener('input', function() {
-    scaleTitelOutput.textContent = scaleTitelSlider.value;
-  });
-});
-
+// Barcode generieren
 function render() {
-  // Ausgewählter Barcode-Typ und Texte aus den Eingabefeldern
-  var elt  = symdesc[document.getElementById('symbol').value];
-  var text = document.getElementById('symtext').value.trim();
-  var alttext = document.getElementById('symaltx').value.trim();
-  var scale = +document.getElementById('scaleInhalt').value || 3;
-  var scaleTitel = +document.getElementById('scaleTitel').value || 3;
-  
-  // Dynamische Berechnung der Textgröße basierend auf dem Skalierungswert
-  var textSize = (Math.pow(scale, textSizeExponent) * scaleTitel);
+    var elt = symdesc[document.getElementById('symbol').value];
+    var rawText = document.getElementById('symtext').value.trim();
+    var alttext = document.getElementById('symaltx').value.trim();
+    var scale = +document.getElementById('scaleInhalt').value || 3;
+    var scaleTitel = +document.getElementById('scaleTitel').value || 3;
 
-  // Zurücksetzen der Ausgaben
-  document.getElementById('output').textContent = '';
+    var textSize = (Math.pow(scale, textSizeExponent) * scaleTitel);
 
-  var canvas = document.getElementById('canvas');
-  canvas.height = 1;
-  canvas.width  = 1;
-  canvas.style.display = 'none';
+    document.getElementById('output').textContent = '';
 
-  // Optionen für den Barcode inkl. dynamischer Textgröße
-  let opts = {
-      text: text,
-      bcid: elt.sym,
-      scale: scale,
-      rotate: 'N',
-      textsize: textSize
-  };
-  if (alttext) {
-      opts.alttext = alttext;
-  }
+    var canvas = document.getElementById('canvas');
+    canvas.height = 1;
+    canvas.width = 1;
+    canvas.style.display = 'none';
 
-  // Barcode auf dem Canvas zeichnen und eventuelle Fehler abfangen
-  try {
-      let ts0 = new Date();
-      bwipjs.toCanvas(canvas, opts);
-      showCVS(ts0, new Date());
-  } catch (e) {
-      var msg = ('' + e).trim();
-      if (msg.indexOf("bwipp.") >= 0) {
-          document.getElementById('output').textContent = msg;
-      } else if (e.stack) {
-          document.getElementById('output').textContent =
-              (e.stack.indexOf(msg) === -1 ? msg + '\n' : '') + e.stack;
-      } else {
-          document.getElementById('output').textContent = msg;
-      }
-      return;
-  }
+    // Falls Eingabe leer ist, Barcode ausblenden
+    if (!rawText) {
+        return;
+    }
+
+    var processedText = processInputText(rawText);
+
+    let opts = {
+        text: processedText,
+        bcid: elt.sym,
+        scale: scale,
+        rotate: 'N',
+        textsize: textSize
+    };
+    if (alttext) {
+        opts.alttext = alttext;
+    }
+
+    try {
+        let ts0 = new Date();
+        bwipjs.toCanvas(canvas, opts);
+        showCVS(ts0, new Date());
+    } catch (e) {
+        var msg = ('' + e).trim();
+        document.getElementById('output').textContent = msg.indexOf("bwipp.") >= 0 ? msg : e.stack || msg;
+        return;
+    }
 }
 
 function showCVS(ts0, ts1) {
-  // Anzeige des Canvas und der Buttons
-  var canvas = document.getElementById('canvas');
-  canvas.style.display = '';
-  document.getElementById('saveas').style.visibility = 'visible';
-  document.getElementById('printas').style.visibility = 'visible';
+    var canvas = document.getElementById('canvas');
+    canvas.style.display = '';
+    var elt = symdesc[document.getElementById('symbol').value];
+    saveCanvas.basename = elt.sym + '-' + document.getElementById('symtext').value.replace(/[^a-zA-Z0-9._]+/g, '-');
 
-  // Erstelle einen Basisnamen für den Dateispeicher- bzw. Druckvorgang
-  var elt = symdesc[document.getElementById('symbol').value];
-  saveCanvas.basename = elt.sym + '-' + document.getElementById('symtext').value.replace(/[^a-zA-Z0-9._]+/g, '-');
-  
-  // Korrigiere die Anzeige des Canvas bei Geräten mit hohem Pixeldichtefaktor
-  canvas.style.zoom = window.devicePixelRatio ? 1 / window.devicePixelRatio : 1;
+    canvas.style.zoom = window.devicePixelRatio ? 1 / window.devicePixelRatio : 1;
 }
 
 function saveCanvas(type, ext) {
-  var canvas = document.getElementById('canvas');
-  canvas.toBlob(function(blob) {
-      saveAs(blob, saveCanvas.basename + ext);
-  }, type, 1);
+    var canvas = document.getElementById('canvas');
+    canvas.toBlob(function(blob) {
+        saveAs(blob, saveCanvas.basename + ext);
+    }, type, 1);
 }
 
 function printBarcode() {
-  var canvas = document.getElementById('canvas');
-  var dataUrl = canvas.toDataURL('image/png');
-  var printWindow = window.open('', '_blank');
-  printWindow.document.write('<html><head><title>Print Barcode</title></head><body style="margin:0; padding:0;">');
-  printWindow.document.write('<img src="' + dataUrl + '" onload="window.print(); window.close();">');
-  printWindow.document.write('</body></html>');
-  printWindow.document.close();
+    var canvas = document.getElementById('canvas');
+    var dataUrl = canvas.toDataURL('image/png');
+    var printWindow = window.open('', '_blank');
+    printWindow.document.write('<html><head><title>Print Barcode</title></head><body style="margin:0; padding:0;">');
+    printWindow.document.write('<img src="' + dataUrl + '" onload="window.print(); window.close();">');
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+}
+
+function updateScale() {
+  var scaleInhaltInput = document.getElementById('scaleInhalt');
+  var scaleInhaltOutput = document.getElementById('wertInhalt');
+
+  var scaleTitelInput = document.getElementById('scaleTitel');
+  var scaleTitelOutput = document.getElementById('wertTitel');
+
+  scaleInhaltInput.addEventListener('input', function() {
+    scaleInhaltOutput.textContent = scaleInhaltInput.value; // Wert in UI aktualisieren
+      render(); // Barcode neu rendern
+  });
+
+  scaleTitelInput.addEventListener('input', function() {
+    scaleTitelOutput.textContent = scaleTitelInput.value; // Wert in UI aktualisieren
+      render(); // Barcode neu rendern
+  });
+
 }

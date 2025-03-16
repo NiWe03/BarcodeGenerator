@@ -121,7 +121,7 @@ function printBarcode() {
     var canvas = document.getElementById('canvas');
     var dataUrl = canvas.toDataURL('image/png');
     var printWindow = window.open('', '_blank');
-    printWindow.document.write('<html><head><title>Print Barcode</title></head><body style="margin:0; padding:0;">');
+    printWindow.document.write('<html><body style="margin:10; padding:10;">');
     printWindow.document.write('<img src="' + dataUrl + '" onload="window.print(); window.close();">');
     printWindow.document.write('</body></html>');
     printWindow.document.close();

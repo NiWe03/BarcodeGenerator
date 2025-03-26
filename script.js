@@ -49,12 +49,18 @@ window.addEventListener('load', function() {
     render();
 });
 
-// Escape-Sequenzen umwandeln
 function processInputText(text) {
     return text
-        .replace(/\\n/g, '\n')  // Benutzer gibt "\n" ein → echtes Enter
-        .replace(/\\t/g, '\t'); // Benutzer gibt "\t" ein → echtes Tab
+        .replace(/\\n/g, '\n')        // Enter (Line Feed)
+        .replace(/\\r/g, '\r')        // Carriage Return (optional)
+        .replace(/\\t/g, '\t')        // Tab
+        .replace(/\\b/g, '\b')        // Backspace
+        .replace(/\\a/g, '\x07')      // Bell (ASCII 7)
+        .replace(/\\x([0-9A-Fa-f]{2})/g, (m, p1) =>
+            String.fromCharCode(parseInt(p1, 16)) // \xNN → echtes Byte
+        );
 }
+
 
 // Barcode generieren
 function render() {
@@ -145,4 +151,18 @@ function updateScale() {
       render(); // Barcode neu rendern
   });
 
+}
+
+function insertEscape(seq) {
+    const textarea = document.getElementById('symtext');
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+
+    // Text ersetzen und Cursor korrekt setzen
+    textarea.value = text.substring(0, start) + seq + text.substring(end);
+    textarea.focus();
+    textarea.selectionStart = textarea.selectionEnd = start + seq.length;
+
+    render(); 
 }

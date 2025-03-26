@@ -2,7 +2,7 @@
 var textSizeExponent = 0.4;
 
 window.addEventListener('load', function() {
-    var allowedTypes = ['code128', 'ean13', 'qrcode', 'upca', 'code39', 'pdf417', 'datamatrix', 'ean8', 'code93', 'upce'];
+    var allowedTypes = ['code128', 'ean13', 'qrcode', 'interleaved2of5', 'code39', 'pdf417', 'datamatrix', 'ean8', 'code93', 'upce'];
 
     var sel = document.getElementById('symbol');
     var opts = [];
@@ -23,9 +23,10 @@ window.addEventListener('load', function() {
     sel.addEventListener('change', function() {
         var eltDesc = symdesc[sel.value];
         document.getElementById('example').textContent = "Beispiel: " + (eltDesc && eltDesc.text ? eltDesc.text : '');
-        document.getElementById('symaltx').value = '';
+        //document.getElementById('symaltx').value = '';
         document.getElementById('output').textContent = '';
         document.getElementById('canvas').style.display = 'none';
+        render();
     });
 
     sel.value = "datamatrix";

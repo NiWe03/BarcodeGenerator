@@ -52,10 +52,7 @@ window.addEventListener('load', function() {
 function processInputText(text) {
     return text
         .replace(/\\n/g, '\n')        // Enter (Line Feed)
-        .replace(/\\r/g, '\r')        // Carriage Return (optional)
         .replace(/\\t/g, '\t')        // Tab
-        .replace(/\\b/g, '\b')        // Backspace
-        .replace(/\\a/g, '\x07')      // Bell (ASCII 7)
         .replace(/\\x([0-9A-Fa-f]{2})/g, (m, p1) =>
             String.fromCharCode(parseInt(p1, 16)) // \xNN → echtes Byte
         );

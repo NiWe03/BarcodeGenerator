@@ -58,6 +58,7 @@ function processInputText(text) {
         );
 }
 
+
 // Barcode generieren
 function render() {
     var elt = symdesc[document.getElementById('symbol').value];

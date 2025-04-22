@@ -32,6 +32,11 @@
               <td>
                 <textarea id="symtext" spellcheck="false"></textarea>
                 <div id="example">Beispiel:</div>
+                <div id="escape-buttons" style="margin-top: 6px;">
+                  <button type="button" class="esc-btn" onclick="insertEscape('\\n')" title="Zeilenumbruch (ENTER)">Enter</button>
+                  <button type="button" class="esc-btn" onclick="insertEscape('\\t')" title="Tabulator">Tab</button>
+                  <button type="button" class="esc-btn" onclick="insertEscape('\\x1D')" title="Für ?? einen Hexwert angeben -> \x??">Hex??</button>
+                </div>                    
               </td>
             </tr>
             <tr>
